@@ -11,6 +11,8 @@ public class Greep extends Creature
     // Remember: you cannot extend the Greep's memory. So:
     // no additional fields (other than final fields) allowed in this class!
     
+    private static final int CIRCLE_TIME_THRESHOLD = 60;
+    
     /**
      * Default constructor for testing purposes.
      */
@@ -25,6 +27,9 @@ public class Greep extends Creature
     public Greep(Ship ship)
     {
         super(ship);
+        
+        setMemory(0);
+        setFlag(1, false);
     }
 
     /**
@@ -34,18 +39,52 @@ public class Greep extends Creature
     {
         super.act();   // do not delete! leave as first statement in act().
         if (carryingTomato()) {
+            setFlag(1, false);
             if (atShip()) {
                 dropTomato();
             }
             else {
                 turnHome();
+                
+                if (atWater()) 
+                {
+                    turn(160);
+                }
+                
                 move();
             }
-        }
-        else {
+        } else if (getFlag(1))
+        {
+            spit("red");
+            turn(15);
             move();
             checkFood();
+            
+            if (getMemory() > CIRCLE_TIME_THRESHOLD)
+            {
+                setFlag(1, false);
+            }
+            
+            setMemory(getMemory() + 1);
+        } else {
+            if (atWorldEdge() || atWater())
+            {
+                turn(45);
+            }
+            
+            TomatoPile tomatoes = (TomatoPile) getOneIntersectingObject(TomatoPile.class);
+            
+            if (tomatoes != null)
+            {
+                setFlag(1, true);
+                setMemory(0);
+            } else {
+                move();
+            }
+            
+            checkFood();
         }
+        
     }
     
     /**
