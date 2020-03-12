@@ -48,16 +48,25 @@ public class Greep extends Creature
             }
             else {
                 int pastRotation = getRotation();
+                int homeRotation = 0;
                 int turnModifier = 0;
                 
-                if (atWater())
-                {
-                    turn(-90);
-                }
-                
                 turnHome();
+                homeRotation = getRotation();
+                setRotation(pastRotation);
                 
-                if (pastRotation < getRotation())
+                int homeRotationDifference = Math.abs(homeRotation - pastRotation);
+                
+                turn(5);
+                if (Math.abs(homeRotation - getRotation()) < homeRotationDifference)
+                {
+                    turnModifier = HOME_TURN_MODIFIER;
+                } else {
+                    turnModifier = HOME_TURN_MODIFIER * -1;
+                }
+                turn(-5);
+                
+                /*if (pastRotation < getRotation())
                 {
                     turnModifier = HOME_TURN_MODIFIER;
                 } else if (pastRotation > getRotation())
@@ -65,9 +74,7 @@ public class Greep extends Creature
                     turnModifier = HOME_TURN_MODIFIER * -1;
                 } else {
                     turnModifier = 0;
-                }
-                
-                setRotation(pastRotation);
+                }*/
                 
                 move();
                 
