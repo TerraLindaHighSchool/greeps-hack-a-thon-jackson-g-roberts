@@ -12,6 +12,7 @@ public class Greep extends Creature
     // no additional fields (other than final fields) allowed in this class!
     
     private static final int CIRCLE_TIME_THRESHOLD = 60;
+    private static final int HOME_TURN_MODIFIER = 5;
     
     /**
      * Default constructor for testing purposes.
@@ -30,6 +31,7 @@ public class Greep extends Creature
         
         setMemory(0);
         setFlag(1, false);
+        setFlag(2, false);
     }
 
     /**
@@ -39,45 +41,54 @@ public class Greep extends Creature
     {
         super.act();   // do not delete! leave as first statement in act().
         if (carryingTomato()) {
-            setFlag(1, false);
+            setFlag(2, false);
             if (atShip()) {
                 dropTomato();
+                turn(180);
             }
             else {
-                turnHome();
+                int pastRotation = getRotation();
+                int turnModifier = 0;
                 
-                if (atWater()) 
+                if (atWater())
                 {
-                    turn(160);
+                    turn(-90);
                 }
                 
+                turnHome();
+                
+                if (pastRotation < getRotation())
+                {
+                    turnModifier = HOME_TURN_MODIFIER;
+                } else if (pastRotation > getRotation())
+                {
+                    turnModifier = HOME_TURN_MODIFIER * -1;
+                } else {
+                    turnModifier = 0;
+                }
+                
+                setRotation(pastRotation);
+                
                 move();
+                
+                turn(turnModifier);
             }
-        } else if (getFlag(1))
+        } else if (getFlag(2))
         {
             spit("red");
             turn(15);
             move();
             checkFood();
-            
-            if (getMemory() > CIRCLE_TIME_THRESHOLD)
-            {
-                setFlag(1, false);
-            }
-            
+            if (getMemory() > CIRCLE_TIME_THRESHOLD) setFlag(2, false);
             setMemory(getMemory() + 1);
         } else {
-            if (atWorldEdge() || atWater())
-            {
-                turn(45);
-            }
-            
             TomatoPile tomatoes = (TomatoPile) getOneIntersectingObject(TomatoPile.class);
             
             if (tomatoes != null)
             {
-                setFlag(1, true);
+                turn(-30);
                 setMemory(0);
+                setFlag(2, true);
             } else {
                 move();
             }
@@ -85,6 +96,67 @@ public class Greep extends Creature
             checkFood();
         }
         
+        if (atWorldEdge())
+            {
+                int x = getX();
+                int y = getY();
+                int rotation = getRotation();
+                int hitWall = 0;
+                
+                if (x < 5)
+                {
+                    hitWall = 3;
+                } else if (x > 795)
+                {
+                    hitWall = 1;
+                } else if (y < 5)
+                {
+                    hitWall = 0;
+                } else {
+                    hitWall = 2;
+                }
+                
+                switch (hitWall)
+                {
+                    case 0:
+                        if (rotation > 270 || rotation < 90)
+                        {
+                            setRotation(90 - (rotation - 270));
+                        } else {
+                            setRotation(180 - (270 - rotation));
+                        }
+                        break;
+                    case 1:
+                        if (rotation > 0 && rotation < 180)
+                        {
+                            setRotation(90 + (90 - rotation));
+                        } else {
+                            setRotation(270 - (rotation - 270));
+                        }
+                        break;
+                    case 2:
+                        if (rotation > 270 || rotation < 90)
+                        {
+                            setRotation(90 - (rotation - 270));
+                        } else {
+                            setRotation(180 - (270 - rotation));
+                        }
+                        break;
+                    case 3:
+                        if (rotation > 0 && rotation < 180)
+                        {
+                            setRotation(90 + (90 - rotation));
+                        } else {
+                            setRotation(270 - (rotation - 270));
+                        }
+                        break;
+                }
+            }
+            
+            if (atWater()) 
+            {
+                turn(45);
+            }
     }
     
     /**
